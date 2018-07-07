@@ -1,0 +1,16 @@
+{
+    "accountName" : "TheIsTheSteemAccountName",
+    "privatePostingKey" : "5ThisIsThePrivatePostingKey",
+    "comment" : "This is the comment.",
+    "discordToken" : "ThisIsTheDsicordToken",
+    "prefix" : "$",
+    "botCommandRole" : "ThisIsTheBotCommanderRoleInDiscord",
+    "minTimeWhitelisted" : 10,
+    "maxTimeWhitelisted" : 4320,
+    "minTimeNotWhitelisted" : 30,
+    "maxTimeNotWhitelisted" : 4320,
+    "minimumPowerToVote" : 80,
+    "_comment1" : "DO NOT CHANGE ANYTHING BELOW THIS!!!",
+    "version" : "0.0.3"
+
+}
