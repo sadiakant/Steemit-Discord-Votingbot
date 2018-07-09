@@ -6,6 +6,7 @@ var whitelistjs = require("./whitelist.js")
 
 var config = {}
 var whitelist = []
+var times = {}
 
 var token = config["discordToken"]
 var prefix = config["prefix"]
@@ -20,6 +21,7 @@ var minimumPowerToVote = config["minimumPowerToVote"]
 
 loadConfig()
 loadWhitelist()
+loadTimes()
 
 const bot = new Discord.Client();
 
@@ -31,6 +33,7 @@ bot.on('message', message => {
     if (message.author.bot) return;
     loadConfig()
     loadWhitelist()
+    loadTimes()
 
     var botCommandId = -1
     try {
@@ -59,7 +62,7 @@ bot.on('message', message => {
         console.log(command)
 
         if (command == "help") {
-            message.channel.send("<@" + message.author.id + "> To get your post voted by @votefun, just type in $vote (postlink). The postlink can be from steemit, or busy, or any other site that follow the @author/permlink format.")
+            message.channel.send("<@" + message.author.id + "> To get your post voted by @votefun, just type in `" + prefix + "vote (postlink)`. The postlink can be from steemit, or busy, or any other site that follow the @author/permlink format. " + botCommandRoleName + " can use `" + prefix + "add (steem name)` to add people to the whitelist and `" + prefix + "remove (steem name)` to remove them from the whitelist.")
         }
 
         if (command == "version" || command == "v") {
@@ -169,7 +172,10 @@ function voteNow(wif, voter, author, permlink, weight, message, member) {
                 app: 'Discord'
             }), function(err, result) {
                 console.log(err, result);
+                times[author] = moment.utc()
+                writeTimes()
             });
+
             if (member) {
                 message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post.")
             } else {
@@ -197,6 +203,14 @@ function loadConfig() {
 
 function loadWhitelist() {
     whitelist = JSON.parse(fs.readFileSync("whitelist.json"));
+}
+
+function loadTimes() {
+    times = JSON.parse(fs.readFileSync("times.json"));
+}
+
+function writeTimes() {
+    fs.writeFile('times.json', JSON.stringify(times, null, 2), function(err) {})
 }
 
 bot.login(token);
