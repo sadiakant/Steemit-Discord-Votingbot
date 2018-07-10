@@ -49,11 +49,6 @@ bot.on('message', message => {
         console.log("Bot Commander Role Failed Somehow")
     }
 
-    //REMOVE THIS SOON. TEMP TO GET PEOPLE USED TO NEW PREFIX.
-    if (message.content.indexOf("!") === 0) {
-        message.channel.send("<@" + message.author.id + "> Our new prefix is " + prefix + ". Please use that instead of !.")
-    }
-
     if (message.content.indexOf(prefix) === 0) {
         console.log(message.content)
         var afterPrefix = message.content.split(prefix).pop()
@@ -62,7 +57,7 @@ bot.on('message', message => {
         console.log(command)
 
         if (command == "help") {
-            message.channel.send("<@" + message.author.id + "> To get your post voted by @votefun, just type in `" + prefix + "vote (postlink)`. The postlink can be from steemit, or busy, or any other site that follow the @author/permlink format. " + botCommandRoleName + " can use `" + prefix + "add (steem name)` to add people to the whitelist and `" + prefix + "remove (steem name)` to remove them from the whitelist.")
+            message.channel.send("<@" + message.author.id + "> To get your post voted by @votefun, just type in `" + prefix + "vote (postlink)`. The postlink can be from steemit, or busy, or any other site that follow the @author/permlink format. " + botCommandRoleName + " can use `" + prefix + "add (steem name)` to add people to the whitelist and `" + prefix + "remove (steem name)` to remove them from the whitelist. `"+ prefix + "value {Vote Weight(Between 0.01 and 100)}` can be used to find the bot's value at a particular percent.")
         }
 
         if (command == "version" || command == "v") {
@@ -141,6 +136,46 @@ bot.on('message', message => {
                 message.channel.send("<@" + message.author.id + "> " + steemAccount + " has " + vp + "% voting power left.")
             })
         }
+
+        if (command == "value")
+        {
+            var weight = parseFloat(splitMessage[1])
+            if (isNaN(weight) || weight > 100 || 0 > weight)
+            {
+                message.channel.send("<@" + message.author.id + "> The proper waay to use this command is `"+ prefix + "value {Vote Weight(Between 0.01 and 100)}`. Please try again.")
+                return
+            }
+            steem.api.getRewardFund('post', function(errFunds, responseFunds)
+            {
+                var rewardBalance = responseFunds.reward_balance.split(" ")[0]
+                var recentClaims = responseFunds.recent_claims
+                steem.api.getAccounts([steemAccount], function(errAccount, responseAccount) {
+                    var secondsago = (new Date - new Date(responseAccount[0].last_vote_time + "Z")) / 1000;
+                    var vpow = responseAccount[0].voting_power + (10000 * secondsago / 432000);
+                    var vp = Math.min(vpow / 100, 100).toFixed(2);
+                    var shares = parseFloat(responseAccount[0].vesting_shares.split(" ")[0])
+                    var recievedShares = parseFloat(responseAccount[0].received_vesting_shares.split(" ")[0])
+                    var sentShares = parseFloat(responseAccount[0].delegated_vesting_shares.split(" ")[0])
+                    var totalVestingShares =  shares + recievedShares
+                    totalVestingShares = totalVestingShares - sentShares
+                    steem.api.getCurrentMedianHistoryPrice(function(errHistory, resultHistory) {
+                        var final_vest = totalVestingShares * 1e6
+                        var power = (parseFloat(vp) * parseFloat(weight) / 10000) / 50
+                        var rshares = power * final_vest / 10000
+                        var estimate = null
+                        estimate = (rshares / parseFloat(recentClaims) * parseFloat(rewardBalance) * parseFloat(resultHistory.base.split(" ")[0])) * 10000
+                        if (estimate != null)
+                        {
+                            message.channel.send("<@" + message.author.id + "> " + steemAccount + "'s vote value at " + weight + "% vote weight is estimated to be $" + (Math.round(estimate*1000)/1000)+ ".")
+                        }
+                        else
+                        {
+                            message.channel.send("<@" + message.author.id + "> The proper waay to use this command is `"+ prefix + "value {Vote Weight(Between 0.01 and 100)}`. Please try again.")
+                        }
+                })
+            })
+        })
+    }
 
         if (command == "add") {
             if (isBotCommander) {
