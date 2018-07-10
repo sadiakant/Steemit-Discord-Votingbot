@@ -5,7 +5,7 @@ How to use:
 1. Have a steem account for this, will require the private posting key.
 2. Create a discordbot and get the token for it.
 3. Clone files
-4. Edit config with your details.
+4. Edit config-exmaple.json with your details then rename it to config.json.
 5. Open terminal and cd to the directory.
 6. `npm install` to install the dependencies.
 7. `node .` to start running the bot. 
