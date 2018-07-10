@@ -1,2 +1,4 @@
 
 node_modules
+whitelist.json
+config.json
