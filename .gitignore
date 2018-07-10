@@ -1,3 +1,8 @@
 
 node_modules
+<<<<<<< HEAD
+=======
+whitelist.json
+>>>>>>> fe8a5a0476758121ac470da8b6a454220fa20bf4
 config.json
+config-example.json

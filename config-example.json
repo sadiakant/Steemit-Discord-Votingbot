@@ -11,6 +11,6 @@
     "maxTimeNotWhitelisted" : 4320,
     "minimumPowerToVote" : 80,
     "_comment1" : "DO NOT CHANGE ANYTHING BELOW THIS!!!",
-    "version" : "0.0.4"
+    "version" : "0.0.5"
 
 }
