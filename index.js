@@ -57,7 +57,7 @@ bot.on('message', message => {
         console.log(command)
 
         if (command == "help") {
-            message.channel.send("<@" + message.author.id + "> To get your post voted by @votefun, just type in `" + prefix + "vote (postlink)`. The postlink can be from steemit, or busy, or any other site that follow the @author/permlink format. " + botCommandRoleName + " can use `" + prefix + "add (steem name)` to add people to the whitelist and `" + prefix + "remove (steem name)` to remove them from the whitelist. `"+ prefix + "value {Vote Weight(Between 0.01 and 100)}` can be used to find the bot's value at a particular percent.")
+            message.channel.send("<@" + message.author.id + "> To get your post voted by @votefun, just type in `" + prefix + "vote (postlink)`. The postlink can be from steemit, or busy, or any other site that follow the @author/permlink format. " + botCommandRoleName + " can use `" + prefix + "add (steem name)` to add people to the whitelist and `" + prefix + "remove (steem name)` to remove them from the whitelist. `" + prefix + "value {Vote Weight(Between 0.01 and 100)}` can be used to find the bot's value at a particular percent.")
         }
 
         if (command == "version" || command == "v") {
@@ -86,40 +86,31 @@ bot.on('message', message => {
                         return
                     }
                     let weight = 10000
-                    if (whitelist.includes(author)) {
-                        steem.api.getContent(author, permlink, function(err, result) {
-                            if (err == null) {
-                                var time = result["created"]
-                                var createdTime = moment.utc(time)
-                                var now = moment.utc()
-                                var difference = now.diff(createdTime, 'minutes')
+
+                    steem.api.getContent(author, permlink, function(err, result) {
+                        if (err == null) {
+                            var time = result["created"]
+                            var createdTime = moment.utc(time)
+                            var now = moment.utc()
+                            var difference = now.diff(createdTime, 'minutes')
+                            if (whitelist.includes(author)) {
                                 if (difference > minTimeWhitelisted && difference < maxTimeWhitelisted) {
                                     voteNow(wif, voter, author, permlink, weight, message, true);
                                 } else {
                                     message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeWhitelisted + " minutes and " + (maxTimeWhitelisted / 1440) + " days for whitelisted authors. This post doesn't meet that requirement.")
                                 }
                             } else {
-                                message.channel.send("<@" + message.author.id + "> We couldn't find your post, do you have the right link?")
-                            }
-                        })
-
-                    } else {
-                        steem.api.getContent(author, permlink, function(err, result) {
-                            if (err == null) {
-                                var time = result["created"]
-                                var createdTime = moment.utc(time)
-                                var now = moment.utc()
-                                var difference = now.diff(createdTime, 'minutes')
-                                if (difference > 30 && difference < 4320) {
-                                    voteNow(wif, voter, author, permlink, weight / 10, message, true);
+                                if (difference > minTimeNotWhitelisted && difference < maxTimeNotWhitelisted) {
+                                    voteNow(wif, voter, author, permlink, weight / 10, message, false);
                                 } else {
                                     message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeNotWhitelisted + " minutes and " + (maxTimeNotWhitelisted / 1440) + " days for non-whitelisted authors. This post doesn't meet that requirement.")
                                 }
-                            } else {
-                                message.channel.send("<@" + message.author.id + "> We couldn't find your post, do you have the right link?")
                             }
-                        })
-                    }
+                        } else {
+                            message.channel.send("<@" + message.author.id + "> We couldn't find your post, do you have the right link?")
+                        }
+                    })
+
                 } else {
                     message.channel.send("<@" + message.author.id + "> " + steemAccount + " has " + vp + "% voting power left. " + steemAccount + " only votes when it has at least " + minimumPowerToVote + "% vp. Please try again once that has been reached. To get the current voting power, use " + prefix + "power.")
                 }
@@ -137,16 +128,13 @@ bot.on('message', message => {
             })
         }
 
-        if (command == "value")
-        {
+        if (command == "value") {
             var weight = parseFloat(splitMessage[1])
-            if (isNaN(weight) || weight > 100 || 0 > weight)
-            {
-                message.channel.send("<@" + message.author.id + "> The proper waay to use this command is `"+ prefix + "value {Vote Weight(Between 0.01 and 100)}`. Please try again.")
+            if (isNaN(weight) || weight > 100 || 0 > weight) {
+                message.channel.send("<@" + message.author.id + "> The proper waay to use this command is `" + prefix + "value {Vote Weight(Between 0.01 and 100)}`. Please try again.")
                 return
             }
-            steem.api.getRewardFund('post', function(errFunds, responseFunds)
-            {
+            steem.api.getRewardFund('post', function(errFunds, responseFunds) {
                 var rewardBalance = responseFunds.reward_balance.split(" ")[0]
                 var recentClaims = responseFunds.recent_claims
                 steem.api.getAccounts([steemAccount], function(errAccount, responseAccount) {
@@ -156,7 +144,7 @@ bot.on('message', message => {
                     var shares = parseFloat(responseAccount[0].vesting_shares.split(" ")[0])
                     var recievedShares = parseFloat(responseAccount[0].received_vesting_shares.split(" ")[0])
                     var sentShares = parseFloat(responseAccount[0].delegated_vesting_shares.split(" ")[0])
-                    var totalVestingShares =  shares + recievedShares
+                    var totalVestingShares = shares + recievedShares
                     totalVestingShares = totalVestingShares - sentShares
                     steem.api.getCurrentMedianHistoryPrice(function(errHistory, resultHistory) {
                         var final_vest = totalVestingShares * 1e6
@@ -164,18 +152,15 @@ bot.on('message', message => {
                         var rshares = power * final_vest / 10000
                         var estimate = null
                         estimate = (rshares / parseFloat(recentClaims) * parseFloat(rewardBalance) * parseFloat(resultHistory.base.split(" ")[0])) * 10000
-                        if (estimate != null)
-                        {
-                            message.channel.send("<@" + message.author.id + "> " + steemAccount + "'s vote value at " + weight + "% vote weight is estimated to be $" + (Math.round(estimate*1000)/1000)+ ".")
+                        if (estimate != null) {
+                            message.channel.send("<@" + message.author.id + "> " + steemAccount + "'s vote value at " + weight + "% vote weight is estimated to be $" + (Math.round(estimate * 1000) / 1000) + ".")
+                        } else {
+                            message.channel.send("<@" + message.author.id + "> The proper way to use this command is `" + prefix + "value {Vote Weight(Between 0.01 and 100)}`. Please try again.")
                         }
-                        else
-                        {
-                            message.channel.send("<@" + message.author.id + "> The proper waay to use this command is `"+ prefix + "value {Vote Weight(Between 0.01 and 100)}`. Please try again.")
-                        }
+                    })
                 })
             })
-        })
-    }
+        }
 
         if (command == "add") {
             if (isBotCommander) {
