@@ -27,6 +27,7 @@ const bot = new Discord.Client();
 
 bot.on('ready', () => {
     console.log('Bot has started');
+    bot.user.setActivity(prefix + "help", { type: 'PLAYING' });
 });
 
 bot.on('message', message => {
