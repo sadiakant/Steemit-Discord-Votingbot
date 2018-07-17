@@ -11,6 +11,15 @@ How to use:
 7. `node .` to start running the bot. 
 8. Head to your discord server and enjoy.
 
+
+Usage on Discord:
+
+1. Have post link. Any site that follows the @author/permlink will work (steemit/busy both work)
+2. Go to the channel with the bot. 
+3. Make sure post meets all the requirements set by the owner of the server (currently min/max time only). 
+4. Type in the prefix(set by owner) and upvote. Then paste in the post link and send the message.
+5. Wait for confirmation message. Enjoy your vote.
+
 The whitelist should consist of STEEM account names, not discord names.
 
 Here's how the config file should be formatted. 
