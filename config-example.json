@@ -1,7 +1,7 @@
 {
     "accountName" : "TheIsTheSteemAccountName",
     "privatePostingKey" : "5ThisIsThePrivatePostingKey",
-    "comment" : "This is the comment.",
+    "comment" : "This is the comment left on posts.",
     "discordToken" : "ThisIsTheDsicordToken",
     "prefix" : "$",
     "botCommandRole" : "ThisIsTheBotCommanderRoleInDiscord",
