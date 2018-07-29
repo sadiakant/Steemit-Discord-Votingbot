@@ -18,6 +18,11 @@ var maxTimeWhitelisted = config["maxTimeWhitelisted"]
 var minTimeNotWhitelisted = config["minTimeNotWhitelisted"]
 var maxTimeNotWhitelisted = config["maxTimeNotWhitelisted"]
 var minimumPowerToVote = config["minimumPowerToVote"]
+var extraMessage = config["extraMessage"]
+var drottoEnabled = config["drottoEnabled"]
+var drottoAmount = config["drottoAmount"]
+var voteWhiteListed = config["voteWhiteListed"]
+var voteNonWhiteListed = config["voteNonWhiteListed"]
 
 loadConfig()
 loadWhitelist()
@@ -83,10 +88,9 @@ bot.on('message', message => {
                         permlink = permlink.toLowerCase()
                     } catch (err) {
                         console.log(err)
-                        message.channel.send("<@" + message.author.id + "> Error. Please try again.")
+                        message.channel.send("<@" + message.author.id + "> Error. Please try again." + extraMessage)
                         return
                     }
-                    let weight = 10000
 
                     steem.api.getContent(author, permlink, function(err, result) {
                         if (err == null) {
@@ -96,15 +100,15 @@ bot.on('message', message => {
                             var difference = now.diff(createdTime, 'minutes')
                             if (whitelist.includes(author)) {
                                 if (difference > minTimeWhitelisted && difference < maxTimeWhitelisted) {
-                                    voteNow(wif, voter, author, permlink, weight, message, true);
+                                    voteNow(wif, voter, author, permlink, voteWhiteListed * 100, message, true);
                                 } else {
-                                    message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeWhitelisted + " minutes and " + (maxTimeWhitelisted / 1440) + " days for whitelisted authors. This post doesn't meet that requirement.")
+                                    message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeWhitelisted + " minutes and " + (maxTimeWhitelisted / 1440) + " days for whitelisted authors. This post doesn't meet that requirement." + extraMessage)
                                 }
                             } else {
                                 if (difference > minTimeNotWhitelisted && difference < maxTimeNotWhitelisted) {
-                                    voteNow(wif, voter, author, permlink, weight / 10, message, false);
+                                    voteNow(wif, voter, author, permlink, voteNonWhiteListed * 100, message, false);
                                 } else {
-                                    message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeNotWhitelisted + " minutes and " + (maxTimeNotWhitelisted / 1440) + " days for non-whitelisted authors. This post doesn't meet that requirement.")
+                                    message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeNotWhitelisted + " minutes and " + (maxTimeNotWhitelisted / 1440) + " days for non-whitelisted authors. This post doesn't meet that requirement." + extraMessage)
                                 }
                             }
                         } else {
@@ -113,7 +117,7 @@ bot.on('message', message => {
                     })
 
                 } else {
-                    message.channel.send("<@" + message.author.id + "> " + steemAccount + " has " + vp + "% voting power left. " + steemAccount + " only votes when it has at least " + minimumPowerToVote + "% vp. Please try again once that has been reached. To get the current voting power, use " + prefix + "power.")
+                    message.channel.send("<@" + message.author.id + "> " + steemAccount + " has " + vp + "% voting power left. " + steemAccount + " only votes when it has at least " + minimumPowerToVote + "% vp. Please try again once that has been reached. To get the current voting power, use " + prefix + "power." + extraMessage)
                 }
             })
 
@@ -198,14 +202,27 @@ function voteNow(wif, voter, author, permlink, weight, message, member) {
             });
 
             if (member) {
-                message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post.")
+                if (drottoEnabled)
+                {
+                    sendDrottoBid(voter, permlink, steemAccount)
+                }
+                message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post." + extraMessage)
             } else {
-                message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post. You aren't a member of cryptowithincin bot. Become a member to get full benefit of this bot.")
+                message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post. You aren't a member of cryptowithincin bot. Become a member to get full benefit of this bot." + extraMessage)
             }
         } else {
-            message.channel.send("<@" + message.author.id + "> There was an error. We don't know why(yet). Hopefully we will soon.")
+            message.channel.send("<@" + message.author.id + "> There was an error. We don't know why(yet). Hopefully we will soon." + extraMessage)
         }
     })
+}
+
+function sendDrottoBid(author, permlink, from)
+{
+    var privateActiveKey = config["privateActiveKey"]
+    var memo = "@" + author + "/" + permlink
+    steem.broadcast.transfer(privateActiveKey, from, "drotto", drottoAmount.toString() +  " SBD", memo, function(err, result) {
+         console.log(err, result);
+      });
 }
 
 function loadConfig() {
@@ -220,6 +237,11 @@ function loadConfig() {
     minTimeNotWhitelisted = config["minTimeNotWhitelisted"]
     maxTimeNotWhitelisted = config["maxTimeNotWhitelisted"]
     minimumPowerToVote = config["minimumPowerToVote"]
+    extraMessage = config["extraMessage"]
+    drottoEnabled = config["drottoEnabled"]
+    drottoAmount = config["drottoAmount"]
+    voteWhiteListed = config["voteWhiteListed"]
+    voteNonWhiteListed = config["voteNonWhiteListed"]
 }
 
 function loadWhitelist() {
