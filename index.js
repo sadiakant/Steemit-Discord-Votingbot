@@ -217,7 +217,7 @@ function voteNow(wif, voter, author, permlink, weight, message, member) {
             if (member) {
                 if (drottoEnabled)
                 {
-                    sendDrottoBid(voter, permlink, steemAccount)
+                    sendDrottoBid(author, permlink, steemAccount)
                 }
                 message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post." + extraMessage)
             } else {
