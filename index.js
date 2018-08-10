@@ -221,7 +221,7 @@ function voteNow(wif, voter, author, permlink, weight, message, member) {
                 }
                 message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post." + extraMessage)
             } else {
-                message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post. You aren't a member of cryptowithincin bot. Become a member to get full benefit of this bot." + extraMessage)
+                message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post. You aren't whitelisted." + extraMessage)
             }
         } else {
             message.channel.send("<@" + message.author.id + "> There was an error. We don't know why(yet). Hopefully we will soon." + extraMessage)
