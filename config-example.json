@@ -17,5 +17,5 @@
     "privateActiveKey" : "5THEPRIVATEACTIVEKEY",
     "extraMessage" : " Want to send an extra message with $upvote messages? Type it out here. Start with an whitespace though.",
     "_comment1" : "DO NOT CHANGE ANYTHING BELOW THIS!!!",
-    "version" : "0.0.6"
+    "version" : "0.0.7"
 }

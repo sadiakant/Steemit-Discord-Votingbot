@@ -92,6 +92,13 @@ bot.on('message', message => {
                         return
                     }
 
+                    loadTimes()
+                    let authorLastVoteDate = times[author]
+                    
+                    let currentUTC = moment.utc()
+                    var differenceVoted = currentUTC.diff(authorLastVoteDate, 'minutes')
+                    if (differenceVoted <= 1440)
+                    {
                     steem.api.getContent(author, permlink, function(err, result) {
                         if (err == null) {
                             var time = result["created"]
@@ -99,13 +106,13 @@ bot.on('message', message => {
                             var now = moment.utc()
                             var difference = now.diff(createdTime, 'minutes')
                             if (whitelist.includes(author)) {
-                                if (difference > minTimeWhitelisted && difference < maxTimeWhitelisted) {
+                                if (difference > minTimeWhitelisted && difference <= maxTimeWhitelisted) {
                                     voteNow(wif, voter, author, permlink, voteWhiteListed * 100, message, true);
                                 } else {
                                     message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeWhitelisted + " minutes and " + (maxTimeWhitelisted / 1440) + " days for whitelisted authors. This post doesn't meet that requirement." + extraMessage)
                                 }
                             } else {
-                                if (difference > minTimeNotWhitelisted && difference < maxTimeNotWhitelisted) {
+                                if (difference > minTimeNotWhitelisted && difference <= maxTimeNotWhitelisted) {
                                     voteNow(wif, voter, author, permlink, voteNonWhiteListed * 100, message, false);
                                 } else {
                                     message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeNotWhitelisted + " minutes and " + (maxTimeNotWhitelisted / 1440) + " days for non-whitelisted authors. This post doesn't meet that requirement." + extraMessage)
@@ -115,11 +122,17 @@ bot.on('message', message => {
                             message.channel.send("<@" + message.author.id + "> We couldn't find your post, do you have the right link?")
                         }
                     })
+                }
+                else
+                {
+                    message.channel.send("<@" + message.author.id + "> You tried to get a vote too early. Try again later. Minimum 1 day in between votes." + extraMessage)
+                }
 
                 } else {
                     message.channel.send("<@" + message.author.id + "> " + steemAccount + " has " + vp + "% voting power left. " + steemAccount + " only votes when it has at least " + minimumPowerToVote + "% vp. Please try again once that has been reached. To get the current voting power, use " + prefix + "power." + extraMessage)
                 }
             })
+            
 
         }
 
