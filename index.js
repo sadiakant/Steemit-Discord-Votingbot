@@ -97,7 +97,12 @@ bot.on('message', message => {
                     
                     let currentUTC = moment.utc()
                     var differenceVoted = currentUTC.diff(authorLastVoteDate, 'minutes')
-                    if (differenceVoted <= 1440)
+
+                    if (authorLastVoteDate == null)
+                    {
+                        differenceVoted = 1441
+                    }
+                    if (differenceVoted >= 1440)
                     {
                     steem.api.getContent(author, permlink, function(err, result) {
                         if (err == null) {
