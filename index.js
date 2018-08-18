@@ -200,6 +200,56 @@ bot.on('message', message => {
                 message.channel.send("<@" + message.author.id + "> Only the people allowed can remove from the whitelist.")
             }
         }
+
+        if (command == "change")
+        {
+            if (isBotCommander)
+            {
+                var toChange = splitMessage[1]
+                var changeTo = splitMessage[2]
+
+                if (config[toChange] != null)
+                {
+                    var type = typeof(config[toChange]).toString()
+                    if (type == "string")
+                    {
+                        config[toChange] = changeTo.toString()
+                        writeConfig()
+                    }
+                    if (type == "boolean")
+                    {
+                        if (changeTo == "true")
+                        {
+                            config[toChange] = true
+                            writeConfig()
+                        }
+                        else if (changeTo == "false")
+                        {
+                            config[changeTo] = false
+                            writeConfig()
+                        }
+                        else
+                        {
+                            message.channel.send("<@" + message.author.id + "> This can only be changed to `true` or `false`.")
+                        }
+                    }
+                    if (type == "number")
+                    {
+                        config[toChange] = parseFloat(number)
+                        writeConfig()
+                    }
+                    console.log(config)
+                    
+                } else
+                {
+                    message.channel.send("<@" + message.author.id + "> That doesn't exist. You sure you have the right name?")
+                }
+            }
+            else
+            {
+                message.channel.send("<@" + message.author.id + "> Only " + botCommandRoleName + " can change configs.")
+            }
+        }
     }
 
 });
@@ -260,6 +310,10 @@ function loadConfig() {
     drottoAmount = config["drottoAmount"]
     voteWhiteListed = config["voteWhiteListed"]
     voteNonWhiteListed = config["voteNonWhiteListed"]
+}
+
+function writeConfig() {
+    fs.writeFile('config.json', JSON.stringify(config, null, 2), function(err) {})
 }
 
 function loadWhitelist() {
