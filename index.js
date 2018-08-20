@@ -130,7 +130,13 @@ bot.on('message', message => {
                 }
                 else
                 {
-                    message.channel.send("<@" + message.author.id + "> You tried to get a vote too early. Try again later. Minimum 1 day in between votes." + extraMessage)
+                    var timeLeft = moment.duration(1440 - differenceVoted, "minutes")._data
+                        console.log(timeLeft)
+                        if (timeLeft.days == 0) {
+                            message.channel.send("<@" + message.author.id + "> You tried to get a vote too early. Try again later. Minimum 1 day in between votes. Try again in " + timeLeft.hours + " hours and " + timeLeft.minutes + " minutes." + extraMessage)
+                        } else {
+                            message.channel.send("<@" + message.author.id + "> You tried to get a vote too early. Try again later. Minimum 1 day in between votes. Try again in 1 day." + extraMessage)
+                        }
                 }
 
                 } else {
