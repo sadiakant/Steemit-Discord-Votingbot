@@ -1,5 +1,6 @@
 const Discord = require('discord.js')
 var steem = require('steem')
+var dsteem = require("dsteem")
 var fs = require("fs")
 var moment = require("moment")
 var whitelistjs = require("./whitelist.js")
@@ -28,6 +29,9 @@ var allowComments = config["allowComments"]
 loadConfig()
 loadWhitelist()
 loadTimes()
+
+var client = new dsteem.Client('https://api.steemit.com')
+
 
 const bot = new Discord.Client();
 
@@ -256,31 +260,35 @@ bot.on('message', message => {
 });
 
 function voteNow(wif, voter, author, permlink, weight, message, member) {
-    steem.broadcast.vote(wif, voter, author, permlink, weight, function (err, result) {
-        console.log(result, err);
-        if (err == null) {
-            var user = message.author.username
-            var comment = config["comment"]
-            comment = comment.replace(/\{user\}/g, user)
-            steem.broadcast.comment(wif, author, permlink, voter, "re-" + permlink, "title", comment, JSON.stringify({
-                app: 'Discord'
-            }), function (err, result) {
-                console.log(err, result);
-                times[author] = moment.utc()
-                writeTimes()
-            });
+    var key = dsteem.PrivateKey.fromString(wif)
+    client.broadcast.vote({
+        voter: voter,
+        author: author,
+        permlink: permlink,
+        weight: weight
+    }, key).then(function(result){
+        var user = message.author.username
+        var comment = config["comment"]
+        comment = comment.replace(/\{user\}/g, user)
+        steem.broadcast.comment(wif, author, permlink, voter, "re-" + permlink, "title", comment, JSON.stringify({
+            app: 'Discord'
+        }), function (err, result) {
+            console.log(err, result);
+            times[author] = moment.utc()
+            writeTimes()
+        });
 
-            if (member) {
-                if (drottoEnabled) {
-                    sendDrottoBid(author, permlink, steemAccount)
-                }
-                message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post." + extraMessage)
-            } else {
-                message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post. You aren't whitelisted." + extraMessage)
+        if (member) {
+            if (drottoEnabled) {
+                sendDrottoBid(author, permlink, steemAccount)
             }
+            message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post." + extraMessage)
         } else {
-            message.channel.send("<@" + message.author.id + "> There was an error. We don't know why(yet). Hopefully we will soon." + extraMessage)
+            message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post. You aren't whitelisted." + extraMessage)
         }
+    }, function(error) {
+       console.error(error)
+       message.channel.send("<@" + message.author.id + "> There was an error. We don't know why(yet). Hopefully we will soon." + extraMessage)
     })
 }
 
