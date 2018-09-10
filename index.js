@@ -4,10 +4,12 @@ var dsteem = require("dsteem")
 var fs = require("fs")
 var moment = require("moment")
 var whitelistjs = require("./whitelist.js")
+var dailyPost = require("./dailyPost")
 
 var config = {}
 var whitelist = []
 var times = {}
+var dailyStats = {}
 
 var token = config["discordToken"]
 var prefix = config["prefix"]
@@ -29,11 +31,15 @@ var allowComments = config["allowComments"]
 loadConfig()
 loadWhitelist()
 loadTimes()
+loadStats()
 
 var client = new dsteem.Client('https://api.steemit.com')
 
 
 const bot = new Discord.Client();
+
+
+setInterval(function(){ dailyPost.makePost() }, 60 * 0.5 * 1000);
 
 bot.on('ready', () => {
     console.log('Bot has started');
@@ -266,7 +272,7 @@ function voteNow(wif, voter, author, permlink, weight, message, member) {
         author: author,
         permlink: permlink,
         weight: weight
-    }, key).then(function(result){
+    }, key).then(function (result) {
         var user = message.author.username
         var comment = config["comment"]
         comment = comment.replace(/\{user\}/g, user)
@@ -276,29 +282,39 @@ function voteNow(wif, voter, author, permlink, weight, message, member) {
             console.log(err, result);
             times[author] = moment.utc()
             writeTimes()
+            dailyStats["amountOfPostsVoted"] = dailyStats["amountOfPostsVoted"] + 1
+            dailyStats["totalVotesGiven"] = dailyStats["totalVotesGiven"] + 1
+            writeStats()
         });
 
         if (member) {
             if (drottoEnabled) {
-                sendDrottoBid(author, permlink, steemAccount)
+                sendDrottoBid(author, permlink)
             }
             message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post." + extraMessage)
         } else {
             message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post. You aren't whitelisted." + extraMessage)
         }
-    }, function(error) {
-       console.error(error)
-       message.channel.send("<@" + message.author.id + "> There was an error. We don't know why(yet). Hopefully we will soon." + extraMessage)
+    }, function (error) {
+        console.error(error)
+        message.channel.send("<@" + message.author.id + "> There was an error. We don't know why(yet). Hopefully we will soon." + extraMessage)
     })
 }
 
-function sendDrottoBid(author, permlink, from) {
+function sendDrottoBid(author, permlink) {
     var privateActiveKey = config["privateActiveKey"]
     var memo = "@" + author + "/" + permlink
-    steem.broadcast.transfer(privateActiveKey, from, "drotto", drottoAmount.toString() + " SBD", memo, function (err, result) {
+    steem.broadcast.transfer(privateActiveKey, steemAccount, "drotto", drottoAmount.toString() + " SBD", memo, function (err, result) {
         console.log(err, result);
+        if (!err)
+        {
+            dailyStats["amountOfDrottoBids"] = dailyStats["amountOfDrottoBids"] + 1
+            writeStats()
+
+        }
     });
 }
+
 
 function loadConfig() {
     config = JSON.parse(fs.readFileSync("config.json"));
@@ -335,5 +351,17 @@ function loadTimes() {
 function writeTimes() {
     fs.writeFile('times.json', JSON.stringify(times, null, 2), function (err) {})
 }
+
+function loadStats() {
+    dailyStats = JSON.parse(fs.readFileSync("dailyStats.json"));
+}
+
+function writeStats() {
+    fs.writeFile('dailyStats.json', JSON.stringify(dailyStats, null, 2), function (err) {})
+}
+
+
+
+
 
 bot.login(token);
