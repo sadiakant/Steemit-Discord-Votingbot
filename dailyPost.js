@@ -1,4 +1,4 @@
-var steem = require('steem')
+var dsteem = require("dsteem")
 var fs = require("fs")
 var moment = require("moment")
 
@@ -25,49 +25,79 @@ If you are a bot owner that accepts small bids (0.001 SBD/STEEM - 0.005 SBD/STEE
 
 If you are a regular user, you can send us a delegation or upvote this post to support us. Anything that you can do is really appreciated. We even need a logo, so if you are an artist, we are looking for a permanent right now and would really appreciate anything that you can do.`
 
-function makePost()
-{
+var client = new dsteem.Client('https://api.steemit.com')
+
+function makePost() {
     loadStats()
     loadConfig()
     var post = basePost
     var currentDate = moment.utc().format("MMM Do YY")
     console.log("curreneDate", currentDate)
     console.log("stats date: ", stats["lastPostedDate"])
-    if (stats["lastPostedDate"] == "" || stats["lastPostedDate"] != currentDate)
-    {
-    post = post.replace(/\{date\}/g, moment.utc().format("MMM Do YY"))
-    post = post.replace(/\{amountOfPostsVoted\}/g, stats["amountOfPostsVoted"])
-    post = post.replace(/\{totalVotesGiven\}/g, stats["totalVotesGiven"])
-    post = post.replace(/\{amountOfDrottoBids\}/g, stats["amountOfDrottoBids"])
-    steem.broadcast.comment(privatePostingKey,"", account, account,  account + "-log-" + moment.utc(), account + " Daily Log: " + moment.utc().format("MMM Do YY") , post, JSON.stringify({app: 'Discord'}), function(err, result) {
-        console.log(err, result);
-        if (!err)
-        {
+    if (stats["lastPostedDate"] == "" || stats["lastPostedDate"] != currentDate) {
+        post = post.replace(/\{date\}/g, moment.utc().format("MMM Do YY"))
+        post = post.replace(/\{amountOfPostsVoted\}/g, stats["amountOfPostsVoted"])
+        post = post.replace(/\{totalVotesGiven\}/g, stats["totalVotesGiven"])
+        post = post.replace(/\{amountOfDrottoBids\}/g, stats["amountOfDrottoBids"])
+        
+        var key = dsteem.PrivateKey.fromString(privatePostingKey)
+
+        var postBody = post
+        var jsonMetadata = JSON.stringify({
+            tags: [account],
+            app: "Discord"
+        })
+        var permLink = account + "-log-" + moment.utc()
+        var postTitle = account + " Daily Log: " + moment.utc().format("MMM Do YY")
+
+        client.broadcast.commentWithOptions({
+            author: account,
+            body: postBody,
+            json_metadata: jsonMetadata,
+            parent_author: "",
+            parent_permlink: account,
+            permlink: permLink,
+            title: postTitle
+        }, {
+            allow_curation_rewards: true,
+            allow_votes: true,
+            author: account,
+            extensions: [
+                [0, {
+                    beneficiaries: [{
+                        "account": "rishi556",
+                        "weight": 1000
+                    }]
+                }]
+            ],
+            max_accepted_payout: "100.000 SBD",
+            percent_steem_dollars: 10000,
+            permlink: permLink
+        }, key).then(function(result) {
             loadStats()
             stats["amountOfPostsVoted"] = 0
             stats["amountOfDrottoBids"] = 0
             stats.lastPostedDate = moment.utc().format("MMM Do YY")
             writeStats()
-        }
-      });
+        }, function(error) {
+            console.log(error)
+        })
     }
 
 }
 
-function loadStats()
-{
+function loadStats() {
     stats = JSON.parse(fs.readFileSync("dailyStats.json"));
 }
 
-function loadConfig()
-{
+function loadConfig() {
     config = JSON.parse(fs.readFileSync("config.json"))
     account = config.accountName
     privatePostingKey = config.privatePostingKey
 }
 
 function writeStats() {
-    fs.writeFile('dailyStats.json', JSON.stringify(stats, null, 2), function (err) {})
+    fs.writeFile('dailyStats.json', JSON.stringify(stats, null, 2), function(err) {})
 }
 
 function loadConfig() {
@@ -77,5 +107,5 @@ function loadConfig() {
 }
 
 module.exports = {
-    makePost : makePost
+    makePost: makePost
 }
