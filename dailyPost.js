@@ -30,20 +30,22 @@ function makePost()
     loadStats()
     loadConfig()
     var post = basePost
-    var currentDate = moment.utc().format("MMM DO YY")
-    if (stats.lastPostedDate == "" || stats.lastPostedDate != currentDate)
+    var currentDate = moment.utc().format("MMM Do YY")
+    console.log("curreneDate", currentDate)
+    console.log("stats date: ", stats["lastPostedDate"])
+    if (stats["lastPostedDate"] == "" || stats["lastPostedDate"] != currentDate)
     {
     post = post.replace(/\{date\}/g, moment.utc().format("MMM Do YY"))
-    post = post.replace(/\{amountOfPostsVoted\}/g, stats.amountOfPostsVoted)
-    post = post.replace(/\{totalVotesGiven\}/g, stats.totalVotesGiven)
-    post = post.replace(/\{amountOfDrottoBids\}/g, stats.amountOfDrottoBids)
+    post = post.replace(/\{amountOfPostsVoted\}/g, stats["amountOfPostsVoted"])
+    post = post.replace(/\{totalVotesGiven\}/g, stats["totalVotesGiven"])
+    post = post.replace(/\{amountOfDrottoBids\}/g, stats["amountOfDrottoBids"])
     steem.broadcast.comment(privatePostingKey,"", account, account,  account + "-log-" + moment.utc(), account + " Daily Log: " + moment.utc().format("MMM Do YY") , post, JSON.stringify({app: 'Discord'}), function(err, result) {
         console.log(err, result);
         if (!err)
         {
             loadStats()
-            stats.amountOfDrottoBids = 0
-            stats.totalVotesGiven = 0
+            stats["amountOfPostsVoted"] = 0
+            stats["amountOfDrottoBids"] = 0
             stats.lastPostedDate = moment.utc().format("MMM Do YY")
             writeStats()
         }
