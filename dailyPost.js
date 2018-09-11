@@ -32,9 +32,9 @@ function makePost() {
     loadConfig()
     var post = basePost
     var currentDate = moment.utc().format("MMM Do YY")
-    console.log("curreneDate", currentDate)
+    console.log("curreneDate:", currentDate)
     console.log("stats date: ", stats["lastPostedDate"])
-    if (stats["lastPostedDate"] == "" || stats["lastPostedDate"] != currentDate) {
+    if (stats["lastPostedDate"] != currentDate) {
         post = post.replace(/\{date\}/g, moment.utc().format("MMM Do YY"))
         post = post.replace(/\{amountOfPostsVoted\}/g, stats["amountOfPostsVoted"])
         post = post.replace(/\{totalVotesGiven\}/g, stats["totalVotesGiven"])
@@ -77,7 +77,7 @@ function makePost() {
             loadStats()
             stats["amountOfPostsVoted"] = 0
             stats["amountOfDrottoBids"] = 0
-            stats.lastPostedDate = moment.utc().format("MMM Do YY")
+            stats.lastPostedDate = currentDate
             writeStats()
         }, function(error) {
             console.log(error)
