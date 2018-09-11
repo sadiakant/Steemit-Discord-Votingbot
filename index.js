@@ -39,7 +39,7 @@ var client = new dsteem.Client('https://api.steemit.com')
 const bot = new Discord.Client();
 
 
-setInterval(function(){ dailyPost.makePost() }, 60 * 0.5 * 1000);
+setInterval(function(){ dailyPost.makePost() }, 60 * 5 * 1000);
 
 bot.on('ready', () => {
     console.log('Bot has started');
@@ -129,13 +129,13 @@ bot.on('message', message => {
                                 if (allowComments || !isComment) {
                                     if (whitelist.includes(author)) {
 
-                                        if (difference > minTimeWhitelisted && difference <= maxTimeWhitelisted) {
+                                        if (difference >= minTimeWhitelisted && difference <= maxTimeWhitelisted) {
                                             voteNow(wif, voter, author, permlink, voteWhiteListed * 100, message, true);
                                         } else {
                                             message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeWhitelisted + " minutes and " + (maxTimeWhitelisted / 1440) + " days for whitelisted authors. This post doesn't meet that requirement." + extraMessage)
                                         }
                                     } else {
-                                        if (difference > minTimeNotWhitelisted && difference <= maxTimeNotWhitelisted) {
+                                        if (difference >= minTimeNotWhitelisted && difference <= maxTimeNotWhitelisted) {
                                             voteNow(wif, voter, author, permlink, voteNonWhiteListed * 100, message, false);
                                         } else {
                                             message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeNotWhitelisted + " minutes and " + (maxTimeNotWhitelisted / 1440) + " days for non-whitelisted authors. This post doesn't meet that requirement." + extraMessage)

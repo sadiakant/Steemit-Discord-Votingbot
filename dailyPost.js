@@ -32,8 +32,7 @@ function makePost() {
     loadConfig()
     var post = basePost
     var currentDate = moment.utc().format("MMM Do YY")
-    console.log("curreneDate:", currentDate)
-    console.log("stats date: ", stats["lastPostedDate"])
+
     if (stats["lastPostedDate"] != currentDate) {
         post = post.replace(/\{date\}/g, moment.utc().format("MMM Do YY"))
         post = post.replace(/\{amountOfPostsVoted\}/g, stats["amountOfPostsVoted"])
@@ -75,8 +74,8 @@ function makePost() {
             permlink: permLink
         }, key).then(function(result) {
             loadStats()
-            stats["amountOfPostsVoted"] = 0
-            stats["amountOfDrottoBids"] = 0
+            stats.amountOfPostsVoted = 0
+            stats.amountOfDrottoBids = 0
             stats.lastPostedDate = currentDate
             writeStats()
         }, function(error) {
