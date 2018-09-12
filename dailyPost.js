@@ -31,9 +31,18 @@ function makePost() {
     loadStats()
     loadConfig()
     var post = basePost
-    var currentDate = moment.utc().format("MMM Do YY")
+    var currentDate = moment.utc()
 
-    if (stats["lastPostedDate"] != currentDate) {
+    var lastPostTime = stats.lastPostedDate
+    var diff = currentDate.diff(lastPostTime, "minutes")
+    if (diff == null)
+    {
+        diff = 1441
+    }
+
+    console.log(diff)
+
+    if (diff >= 1440) {
         post = post.replace(/\{date\}/g, moment.utc().format("MMM Do YY"))
         post = post.replace(/\{amountOfPostsVoted\}/g, stats["amountOfPostsVoted"])
         post = post.replace(/\{totalVotesGiven\}/g, stats["totalVotesGiven"])
