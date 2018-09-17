@@ -39,7 +39,7 @@ var client = new dsteem.Client('https://api.steemit.com')
 const bot = new Discord.Client();
 
 
-setInterval(function(){ dailyPost.makePost() }, 60 * 5 * 1000);
+//setInterval(function(){ dailyPost.makePost() }, 60 * 0.5 * 1000);
 
 bot.on('ready', () => {
     console.log('Bot has started');
