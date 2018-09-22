@@ -47,10 +47,24 @@ Here's how the config file should be formatted.
     
     "minimumPowerToVote" : 80, # If the account is under this % of VP, it won't vote.
     
-    "_comment1" : "DO NOT CHANGE ANYTHING BELOW THIS!!!", # Just a comment. Don't change anything under this please. Its useful when coming to me to ask about whats wrong as I can refer to the code for older versions if you can easlily get your version.
+   "drottoEnabled" : true,  # Choose to send bits to the @drotto bot
+   
+    "drottoAmount" : 0.001,  # How much to Send to @drotto if enabled
     
-    "version" : "0.0.3" # The current bot version.
-
+    "voteWhiteListed" : 100, # % to vote whitelisted users
+    
+    "voteNonWhiteListed" : 25, # % to vote nonwhitelisted users
+    
+    "privateActiveKey" : "5THEPRIVATEACTIVEKEY", # The private key to the account. Required if drottoEnabled is set to true to send bids
+    
+    "allowComments" : true, # Choose to allow bot to vote on comments or only root posts
+    
+    "extraMessage" : " Want to send an extra message with $upvote messages? Type it out here. Start with an whitespace though.", # Send an extra message with (prefix)upvote commands messages.
+    
+    "_comment1" : "DO NOT CHANGE ANYTHING BELOW THIS!!!", #Comment from me
+    
+    "version" : "1.0.0" # The bot version you are using. Useful for debugging if you contact someone.
 }
 ```
+
 
