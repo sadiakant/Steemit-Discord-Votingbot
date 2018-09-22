@@ -4,12 +4,12 @@ var dsteem = require("dsteem")
 var fs = require("fs")
 var moment = require("moment")
 var whitelistjs = require("./whitelist.js")
-var dailyPost = require("./dailyPost")
+
 
 var config = {}
 var whitelist = []
 var times = {}
-var dailyStats = {}
+
 
 var token = config["discordToken"]
 var prefix = config["prefix"]
@@ -31,7 +31,7 @@ var allowComments = config["allowComments"]
 loadConfig()
 loadWhitelist()
 loadTimes()
-loadStats()
+
 
 var client = new dsteem.Client('https://api.steemit.com')
 
@@ -39,7 +39,7 @@ var client = new dsteem.Client('https://api.steemit.com')
 const bot = new Discord.Client();
 
 
-//setInterval(function(){ dailyPost.makePost() }, 60 * 0.5 * 1000);
+
 
 bot.on('ready', () => {
     console.log('Bot has started');
@@ -282,9 +282,7 @@ function voteNow(wif, voter, author, permlink, weight, message, member) {
             console.log(err, result);
             times[author] = moment.utc()
             writeTimes()
-            dailyStats["amountOfPostsVoted"] = dailyStats["amountOfPostsVoted"] + 1
-            dailyStats["totalVotesGiven"] = dailyStats["totalVotesGiven"] + 1
-            writeStats()
+            
         });
 
         if (member) {
@@ -308,8 +306,7 @@ function sendDrottoBid(author, permlink) {
         console.log(err, result);
         if (!err)
         {
-            dailyStats["amountOfDrottoBids"] = dailyStats["amountOfDrottoBids"] + 1
-            writeStats()
+            
 
         }
     });
@@ -351,17 +348,6 @@ function loadTimes() {
 function writeTimes() {
     fs.writeFile('times.json', JSON.stringify(times, null, 2), function (err) {})
 }
-
-function loadStats() {
-    dailyStats = JSON.parse(fs.readFileSync("dailyStats.json"));
-}
-
-function writeStats() {
-    fs.writeFile('dailyStats.json', JSON.stringify(dailyStats, null, 2), function (err) {})
-}
-
-
-
 
 
 bot.login(token);
