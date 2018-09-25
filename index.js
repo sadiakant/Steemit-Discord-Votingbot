@@ -4,11 +4,14 @@ var dsteem = require("dsteem")
 var fs = require("fs")
 var moment = require("moment")
 var whitelistjs = require("./whitelist.js")
+var api = require("./api")
 
 
 var config = {}
 var whitelist = []
 var times = {}
+
+api.start()
 
 
 var token = config["discordToken"]
@@ -76,7 +79,7 @@ bot.on('message', message => {
         console.log(command)
 
         if (command == "help") {
-            message.channel.send("<@" + message.author.id + "> To get your post voted by @" + steemAccount + ", just type in `" + prefix + "vote (postlink)`. The postlink can be from steemit, or busy, or any other site that follow the @author/permlink format. " + botCommandRoleName + " can use `" + prefix + "add (steem name)` to add people to the whitelist and `" + prefix + "remove (steem name)` to remove them from the whitelist. `" + prefix + "value {Vote Weight(Between 0.01 and 100)}` can be used to find the bot's value at a particular percent.")
+            message.channel.send("<@" + message.author.id + "> To get your post voted by @" + steemAccount + ", just type in `" + prefix + "upvote (postlink)`. The postlink can be from steemit, or busy, or any other site that follow the @author/permlink format. " + botCommandRoleName + " can use `" + prefix + "add (steem name)` to add people to the whitelist and `" + prefix + "remove (steem name)` to remove them from the whitelist. `" + prefix + "value {Vote Weight(Between 0.01 and 100)}` can be used to find the bot's value at a particular percent.")
         }
 
         if (command == "version" || command == "v") {
