@@ -14,6 +14,7 @@ app.use(router)
 var password = ""
 
 router.get('', function(req, res) {
+    console.log(password)
     if (req.headers.password == password) {
         res.json({
             "message": "Success"
@@ -71,7 +72,8 @@ function start() {
     setInterval(function() {
         fs.readFile("whitelist.json", function(err, data) {
             if (!err) {
-                password = data.apiPassword
+                var properData = JSON.parse(data)
+                password = properData.apiPassword
             }
         })
     }, 10 * 1000)
