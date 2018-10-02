@@ -70,9 +70,10 @@ router.post("/whitelist", function(req, res) {
 function start() {
     app.listen(8080)
     setInterval(function() {
-        fs.readFile("whitelist.json", function(err, data) {
+        fs.readFile("config.json", function(err, data) {
             if (!err) {
                 var properData = JSON.parse(data)
+                console.log(properData)
                 password = properData.apiPassword
             }
         })
