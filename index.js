@@ -13,7 +13,6 @@ var times = {}
 
 api.start()
 
-
 var token = config["discordToken"]
 var prefix = config["prefix"]
 var botCommandRoleName = config["botCommandRole"]
@@ -35,14 +34,9 @@ loadConfig()
 loadWhitelist()
 loadTimes()
 
-
 var client = new dsteem.Client('https://api.steemit.com')
 
-
 const bot = new Discord.Client();
-
-
-
 
 bot.on('ready', () => {
     console.log('Bot has started');
@@ -165,8 +159,6 @@ bot.on('message', message => {
                     message.channel.send("<@" + message.author.id + "> " + steemAccount + " has " + vp + "% voting power left. " + steemAccount + " only votes when it has at least " + minimumPowerToVote + "% vp. Please try again once that has been reached. To get the current voting power, use " + prefix + "power." + extraMessage)
                 }
             })
-
-
         }
 
 
