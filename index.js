@@ -3,6 +3,7 @@ var steem = require('steem')
 var dsteem = require("dsteem")
 var fs = require("fs")
 var moment = require("moment")
+var request = require("request")
 var whitelistjs = require("./whitelist.js")
 var api = require("./api")
 
@@ -24,11 +25,10 @@ var minTimeNotWhitelisted = config["minTimeNotWhitelisted"]
 var maxTimeNotWhitelisted = config["maxTimeNotWhitelisted"]
 var minimumPowerToVote = config["minimumPowerToVote"]
 var extraMessage = config["extraMessage"]
-var drottoEnabled = config["drottoEnabled"]
-var drottoAmount = config["drottoAmount"]
 var voteWhiteListed = config["voteWhiteListed"]
 var voteNonWhiteListed = config["voteNonWhiteListed"]
 var allowComments = config["allowComments"]
+var blissfishApiKey = config["blissfishApiKey"]
 
 loadConfig()
 loadWhitelist()
@@ -281,8 +281,8 @@ function voteNow(wif, voter, author, permlink, weight, message, member) {
         });
 
         if (member) {
-            if (drottoEnabled) {
-                sendDrottoBid(author, permlink)
+            if (blissfishApiKey != "" || blissfishApiKey != null) {
+                sendBlissFishBidWithApi(blissfishApiKey, author, permlink)
             }
             message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post." + extraMessage)
         } else {
@@ -294,18 +294,17 @@ function voteNow(wif, voter, author, permlink, weight, message, member) {
     })
 }
 
-function sendDrottoBid(author, permlink) {
-    var privateActiveKey = config["privateActiveKey"]
-    var memo = "@" + author + "/" + permlink
-    steem.broadcast.transfer(privateActiveKey, steemAccount, "drotto", drottoAmount.toString() + " SBD", memo, function (err, result) {
-        console.log(err, result);
-        if (!err)
-        {
-            
+function sendBlissFishBidWithApi(key, author, permlink) {
+    var url = 'http://198.245.55.162:3000/submit';
+var headers = {'key': key}
+var form = {"post" : "@" + author + "/" + permlink};
 
-        }
-    });
+request.post({ url: url, form: form, headers: headers }, function (e, r, body) {
+    console.log(e,r,body)
+});
 }
+
+
 
 
 function loadConfig() {
@@ -321,11 +320,10 @@ function loadConfig() {
     maxTimeNotWhitelisted = config["maxTimeNotWhitelisted"]
     minimumPowerToVote = config["minimumPowerToVote"]
     extraMessage = config["extraMessage"]
-    drottoEnabled = config["drottoEnabled"]
-    drottoAmount = config["drottoAmount"]
     voteWhiteListed = config["voteWhiteListed"]
     voteNonWhiteListed = config["voteNonWhiteListed"]
     allowComments = config["allowComments"]
+    blissfishApiKey = config["blissfishApiKey"]
 }
 
 function writeConfig() {
