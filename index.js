@@ -29,6 +29,7 @@ var voteWhiteListed = config["voteWhiteListed"]
 var voteNonWhiteListed = config["voteNonWhiteListed"]
 var allowComments = config["allowComments"]
 var blissfishApiKey = config["blissfishApiKey"]
+var leaveComment = config["leaveComment"]
 
 loadConfig()
 loadWhitelist()
@@ -269,16 +270,16 @@ function voteNow(wif, voter, author, permlink, weight, message, member) {
         weight: weight
     }, key).then(function (result) {
         var user = message.author.username
-        var comment = config["comment"]
-        comment = comment.replace(/\{user\}/g, user)
-        steem.broadcast.comment(wif, author, permlink, voter, "re-" + permlink, "title", comment, JSON.stringify({
-            app: 'Discord'
-        }), function (err, result) {
-            console.log(err, result);
-            times[author] = moment.utc()
+        
+
+        if (leaveComment) {
+            var comment = config["comment"]
+            comment = comment.replace(/\{user\}/g, user)
+            makeComment(wif, author, permlink, voter, permlink, comment)
+        }
+
+        times[author] = moment.utc()
             writeTimes()
-            
-        });
 
         if (member) {
             if (blissfishApiKey != "" || blissfishApiKey != null) {
@@ -289,19 +290,31 @@ function voteNow(wif, voter, author, permlink, weight, message, member) {
             message.channel.send("<@" + message.author.id + "> Sucessfully voted on your post. You aren't whitelisted." + extraMessage)
         }
     }, function (error) {
-        console.error(error)
-        message.channel.send("<@" + message.author.id + "> There was an error. We don't know why(yet). Hopefully we will soon." + extraMessage)
+        var errorMessage = error.message
+        message.channel.send("<@" + message.author.id + "> There was an error with message: " + errorMessage + extraMessage)
     })
+}
+
+
+function makeComment(wif, author, permlink, voter, permlink, comment){
+    steem.broadcast.comment(wif, author, permlink, voter, "re-" + permlink, "title", comment, JSON.stringify({
+        app: 'Discord'
+    }), function (err, result) {
+
+        console.log("Left comment on : " + author + " " + permlink)
+        
+        
+    });
 }
 
 function sendBlissFishBidWithApi(key, author, permlink) {
     var url = 'http://198.245.55.162:3000/submit';
-var headers = {'key': key}
-var form = {"post" : "@" + author + "/" + permlink};
+    var headers = {'key': key}
+    var form = {"post" : "@" + author + "/" + permlink};
 
-request.post({ url: url, form: form, headers: headers }, function (e, r, body) {
-    console.log(e,r,body)
-});
+    request.post({ url: url, form: form, headers: headers }, function (e, r, body) {
+        console.log(e,r,body)
+    })
 }
 
 
@@ -324,6 +337,7 @@ function loadConfig() {
     voteNonWhiteListed = config["voteNonWhiteListed"]
     allowComments = config["allowComments"]
     blissfishApiKey = config["blissfishApiKey"]
+    leaveComment = config["leaveComment"]
 }
 
 function writeConfig() {
