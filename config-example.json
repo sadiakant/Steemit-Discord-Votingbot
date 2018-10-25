@@ -18,6 +18,7 @@
     "allowComments" : true,
     "apiPassword" : "passwordforapi",
     "extraMessage" : " Want to send an extra message with $upvote messages? Type it out here. Start with an whitespace though.",
+    "blacklistedTags": "blacklistedtagsgohereseperatedbyacomma",
     "_comment1" : "DO NOT CHANGE ANYTHING BELOW THIS!!!",
-    "version" : "1.1.1"
+    "version" : "1.2.0"
 }
