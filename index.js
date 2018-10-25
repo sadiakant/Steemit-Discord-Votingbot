@@ -31,6 +31,7 @@ var allowComments = config["allowComments"]
 var blissfishApiKey = config["blissfishApiKey"]
 var leaveComment = config["leaveComment"]
 var blacklistedTags = config["blacklistedTags"]
+var whitelistOnlyMode = config["whitelistOnlyMode"]
 
 loadConfig()
 loadWhitelist()
@@ -144,10 +145,14 @@ bot.on('message', message => {
                                                 message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeWhitelisted + " minutes and " + (maxTimeWhitelisted / 1440) + " days for whitelisted authors. This post doesn't meet that requirement." + extraMessage)
                                             }
                                         } else {
-                                            if (helper.isInRangeInclusinve(minTimeNotWhitelisted, maxTimeNotWhitelisted, difference)) {
-                                                voteNow(wif, voter, author, permlink, voteNonWhiteListed * 100, message, false);
+                                            if (!whitelistOnlyMode){
+                                                if (helper.isInRangeInclusinve(minTimeNotWhitelisted, maxTimeNotWhitelisted, difference)) {
+                                                    voteNow(wif, voter, author, permlink, voteNonWhiteListed * 100, message, false);
+                                                } else {
+                                                    message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeNotWhitelisted + " minutes and " + (maxTimeNotWhitelisted / 1440) + " days for non-whitelisted authors. This post doesn't meet that requirement." + extraMessage)
+                                                }
                                             } else {
-                                                message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeNotWhitelisted + " minutes and " + (maxTimeNotWhitelisted / 1440) + " days for non-whitelisted authors. This post doesn't meet that requirement." + extraMessage)
+                                                message.channel.send("<@" + message.author.id + "> The bot is in whitelist only mode. Please get whitelisted to use it.")
                                             }
                                         }
                                     } else {
@@ -349,6 +354,7 @@ function loadConfig() {
     blissfishApiKey = config["blissfishApiKey"]
     leaveComment = config["leaveComment"]
     blacklistedTags = config["blacklistedTags"]
+    whitelistOnlyMode = config["whitelistOnlyMode"]
 }
 
 function writeConfig() {
