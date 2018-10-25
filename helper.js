@@ -1,10 +1,25 @@
 // MATH STUFF
+
 function isInRangeInclusinve(min, max, num) {
     if (num >= min && num <= max){
         return true
     } else {
         return false
     }
+}
+
+// Other
+function shareAnElement(arrayOne, arrayTwo){
+    var match = false
+    for (iOne in arrayOne){
+        var currentElement = arrayOne[iOne].toLowerCase()
+        for (iTwo in arrayTwo){
+            if (currentElement == arrayTwo[iTwo].toLowerCase()){
+                match = true
+            }
+        }
+    }
+    return match
 }
 
 //STEEM STUFF
@@ -21,5 +36,6 @@ function getVPOfAccount(account, callback){
 
 module.exports = {
     isInRangeInclusinve : isInRangeInclusinve,
+    shareAnElement: shareAnElement,
     getVPOfAccount: getVPOfAccount
 }

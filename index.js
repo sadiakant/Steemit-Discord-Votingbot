@@ -8,7 +8,6 @@ var whitelistjs = require("./whitelist.js")
 var api = require("./api")
 var helper = require("./helper.js")
 
-
 var config = {}
 var whitelist = []
 var times = {}
@@ -31,6 +30,7 @@ var voteNonWhiteListed = config["voteNonWhiteListed"]
 var allowComments = config["allowComments"]
 var blissfishApiKey = config["blissfishApiKey"]
 var leaveComment = config["leaveComment"]
+var blacklistedTags = config["blacklistedTags"]
 
 loadConfig()
 loadWhitelist()
@@ -115,45 +115,61 @@ bot.on('message', message => {
                     }
                     if (differenceVoted >= 1440) {
                         steem.api.getContent(author, permlink, function (err, result) {
+                            
                             if (err == null) {
+
+                                var jsonMetadata = JSON.parse(result.json_metadata)
+                                var tagsOnPost = jsonMetadata.tags
+                                
+                                blacklistedTags = blacklistedTags.replace(/\s/g, '')
+                                var blacklistedTagsArray = blacklistedTags.split(",")
+
+                                var containsMatchingBlacklistedTags = helper.shareAnElement(tagsOnPost, blacklistedTagsArray)
+
+
+
                                 var isComment = true
                                 if (result.parent_author == "") {
                                     isComment = false
                                 }
 
-                                var time = result["created"]
-                                var createdTime = moment.utc(time)
-                                var now = moment.utc()
-                                var difference = now.diff(createdTime, 'minutes')
-                                if (allowComments || !isComment) {
-                                    if (whitelist.includes(author)) {
 
-                                        if (helper.isInRangeInclusinve(minTimeWhitelisted, maxTimeWhitelisted, difference)){
-                                            voteNow(wif, voter, author, permlink, voteWhiteListed * 100, message, true);
+
+                                
+                                    var time = result["created"]
+                                    var createdTime = moment.utc(time)
+                                    var now = moment.utc()
+                                    var difference = now.diff(createdTime, 'minutes')
+                                    if (allowComments || !isComment) {
+                                        if (whitelist.includes(author)) {
+
+                                            if (helper.isInRangeInclusinve(minTimeWhitelisted, maxTimeWhitelisted, difference)){
+                                                voteNow(wif, voter, author, permlink, voteWhiteListed * 100, message, true);
+                                            } else {
+                                                message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeWhitelisted + " minutes and " + (maxTimeWhitelisted / 1440) + " days for whitelisted authors. This post doesn't meet that requirement." + extraMessage)
+                                            }
                                         } else {
-                                            message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeWhitelisted + " minutes and " + (maxTimeWhitelisted / 1440) + " days for whitelisted authors. This post doesn't meet that requirement." + extraMessage)
+                                            if (helper.isInRangeInclusinve(minTimeNotWhitelisted, maxTimeNotWhitelisted, difference)){
+                                                voteNow(wif, voter, author, permlink, voteNonWhiteListed * 100, message, false);
+                                            } else {
+                                                message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeNotWhitelisted + " minutes and " + (maxTimeNotWhitelisted / 1440) + " days for non-whitelisted authors. This post doesn't meet that requirement." + extraMessage)
+                                            }
                                         }
                                     } else {
-                                        if (helper.isInRangeInclusinve(minTimeNotWhitelisted, maxTimeNotWhitelisted, difference)){
-                                            voteNow(wif, voter, author, permlink, voteNonWhiteListed * 100, message, false);
-                                        } else {
-                                            message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeNotWhitelisted + " minutes and " + (maxTimeNotWhitelisted / 1440) + " days for non-whitelisted authors. This post doesn't meet that requirement." + extraMessage)
-                                        }
+                                        message.channel.send("<@" + message.author.id + "> We don't allow comments.")
                                     }
-                                } else {
-                                    message.channel.send("<@" + message.author.id + "> We don't allow comments.")
                                 }
-                            } else {
+                            
+                             else {
                                 message.channel.send("<@" + message.author.id + "> We couldn't find your post, do you have the right link?")
                             }
                         })
                     } else {
                         var timeLeft = moment.duration(1440 - differenceVoted, "minutes")._data
-                        console.log(timeLeft)
                         if (timeLeft.days == 0) {
                             message.channel.send("<@" + message.author.id + "> You tried to get a vote too early. Try again later. Minimum 1 day in between votes. Try again in " + timeLeft.hours + " hours and " + timeLeft.minutes + " minutes." + extraMessage)
                         } else {
-                            message.channel.send("<@" + message.author.id + "> You tried to get a vote too early. Try again later. Minimum 1 day in between votes. Try again in 1 day." + extraMessage)
+                            message.channel.send("<@" + message.author.id + "> You tried to get a vote too early. Try again later. Minimum 1 day in between votes. Try again in " + timeLeft.days + "day(s)." + extraMessage)
                         }
                     }
 
@@ -269,7 +285,6 @@ function voteNow(wif, voter, author, permlink, weight, message, member) {
     }, key).then(function (result) {
         var user = message.author.username
         
-
         if (leaveComment) {
             var comment = config["comment"]
             comment = comment.replace(/\{user\}/g, user)
@@ -328,6 +343,7 @@ function loadConfig() {
     allowComments = config["allowComments"]
     blissfishApiKey = config["blissfishApiKey"]
     leaveComment = config["leaveComment"]
+    blacklistedTags = config["blacklistedTags"]
 }
 
 function writeConfig() {
