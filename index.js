@@ -6,6 +6,7 @@ var moment = require("moment")
 var request = require("request")
 var whitelistjs = require("./whitelist.js")
 var api = require("./api")
+var helper = require("./helper.js")
 
 
 var config = {}
@@ -127,13 +128,13 @@ bot.on('message', message => {
                                 if (allowComments || !isComment) {
                                     if (whitelist.includes(author)) {
 
-                                        if (difference >= minTimeWhitelisted && difference <= maxTimeWhitelisted) {
+                                        if (helper.isInRangeInclusinve(minTimeWhitelisted, maxTimeWhitelisted, difference)){
                                             voteNow(wif, voter, author, permlink, voteWhiteListed * 100, message, true);
                                         } else {
                                             message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeWhitelisted + " minutes and " + (maxTimeWhitelisted / 1440) + " days for whitelisted authors. This post doesn't meet that requirement." + extraMessage)
                                         }
                                     } else {
-                                        if (difference >= minTimeNotWhitelisted && difference <= maxTimeNotWhitelisted) {
+                                        if (helper.isInRangeInclusinve(minTimeNotWhitelisted, maxTimeNotWhitelisted, difference)){
                                             voteNow(wif, voter, author, permlink, voteNonWhiteListed * 100, message, false);
                                         } else {
                                             message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeNotWhitelisted + " minutes and " + (maxTimeNotWhitelisted / 1440) + " days for non-whitelisted authors. This post doesn't meet that requirement." + extraMessage)
@@ -164,11 +165,9 @@ bot.on('message', message => {
 
 
         if (command == "power") {
-            steem.api.getAccounts([steemAccount], function (err, response) {
-                var secondsago = (new Date - new Date(response[0].last_vote_time + "Z")) / 1000;
-                var vpow = response[0].voting_power + (10000 * secondsago / 432000);
-                var vp = Math.min(vpow / 100, 100).toFixed(2);
+            helper.getVPOfAccount(steemAccount, function(vp){
                 message.channel.send("<@" + message.author.id + "> " + steemAccount + " has " + vp + "% voting power left.")
+
             })
         }
 
@@ -258,8 +257,7 @@ bot.on('message', message => {
             }
         }
     }
-
-});
+})
 
 function voteNow(wif, voter, author, permlink, weight, message, member) {
     var key = dsteem.PrivateKey.fromString(wif)
@@ -295,15 +293,10 @@ function voteNow(wif, voter, author, permlink, weight, message, member) {
     })
 }
 
-
 function makeComment(wif, author, permlink, voter, permlink, comment){
     steem.broadcast.comment(wif, author, permlink, voter, "re-" + permlink, "title", comment, JSON.stringify({
-        app: 'Discord'
-    }), function (err, result) {
-
+        app: 'Discord'}), function (err, result) {
         console.log("Left comment on : " + author + " " + permlink)
-        
-        
     });
 }
 
@@ -316,9 +309,6 @@ function sendBlissFishBidWithApi(key, author, permlink) {
         console.log(e,r,body)
     })
 }
-
-
-
 
 function loadConfig() {
     config = JSON.parse(fs.readFileSync("config.json"));
