@@ -123,44 +123,47 @@ bot.on('message', message => {
 
                                 blacklistedTags = blacklistedTags.replace(/\s/g, '')
                                 var blacklistedTagsArray = blacklistedTags.split(",")
-
                                 var containsMatchingBlacklistedTags = helper.shareAnElement(tagsOnPost, blacklistedTagsArray)
 
                                 var isComment = true
+
                                 if (result.parent_author == "") {
                                     isComment = false
+                                }
+
+                                if (!allowComments && isComment) {
+                                    message.channel.send("<@" + message.author.id + "> We don't allow comments.")
+                                    return
+                                }
+
+                                if (containsMatchingBlacklistedTags) {
+                                    message.channel.send("<@" + message.author.id + "> Your post has a blacklisted tag. We won't vote for this post.")
+                                    return
                                 }
 
                                 var time = result["created"]
                                 var createdTime = moment.utc(time)
                                 var now = moment.utc()
                                 var difference = now.diff(createdTime, 'minutes')
-                                if (allowComments || !isComment) {
-                                    if (!containsMatchingBlacklistedTags) {
-                                        if (whitelist.includes(author)) {
 
-                                            if (helper.isInRangeInclusinve(minTimeWhitelisted, maxTimeWhitelisted, difference)) {
-                                                voteNow(wif, voter, author, permlink, voteWhiteListed * 100, message, true);
-                                            } else {
-                                                message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeWhitelisted + " minutes and " + (maxTimeWhitelisted / 1440) + " days for whitelisted authors. This post doesn't meet that requirement." + extraMessage)
-                                            }
-                                        } else {
-                                            if (!whitelistOnlyMode){
-                                                if (helper.isInRangeInclusinve(minTimeNotWhitelisted, maxTimeNotWhitelisted, difference)) {
-                                                    voteNow(wif, voter, author, permlink, voteNonWhiteListed * 100, message, false);
-                                                } else {
-                                                    message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeNotWhitelisted + " minutes and " + (maxTimeNotWhitelisted / 1440) + " days for non-whitelisted authors. This post doesn't meet that requirement." + extraMessage)
-                                                }
-                                            } else {
-                                                message.channel.send("<@" + message.author.id + "> The bot is in whitelist only mode. Please get whitelisted to use it.")
-                                            }
-                                        }
+                                if (whitelist.includes(author)) {
+                                    if (helper.isInRangeInclusinve(minTimeWhitelisted, maxTimeWhitelisted, difference)) {
+                                        voteNow(wif, voter, author, permlink, voteWhiteListed * 100, message, true);
                                     } else {
-                                        message.channel.send("<@" + message.author.id + "> Your post has a blacklisted tag. We won't vote for this post.")
+                                        message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeWhitelisted + " minutes and " + (maxTimeWhitelisted / 1440) + " days for whitelisted authors. This post doesn't meet that requirement." + extraMessage)
                                     }
                                 } else {
-                                    message.channel.send("<@" + message.author.id + "> We don't allow comments.")
+                                    if (!whitelistOnlyMode) {
+                                        if (helper.isInRangeInclusinve(minTimeNotWhitelisted, maxTimeNotWhitelisted, difference)) {
+                                            voteNow(wif, voter, author, permlink, voteNonWhiteListed * 100, message, false);
+                                        } else {
+                                            message.channel.send("<@" + message.author.id + "> Posts can only be voted between " + minTimeNotWhitelisted + " minutes and " + (maxTimeNotWhitelisted / 1440) + " days for non-whitelisted authors. This post doesn't meet that requirement." + extraMessage)
+                                        }
+                                    } else {
+                                        message.channel.send("<@" + message.author.id + "> The bot is in whitelist only mode. Please get whitelisted to use it.")
+                                    }
                                 }
+
                             } else {
                                 message.channel.send("<@" + message.author.id + "> We couldn't find your post, do you have the right link?")
                             }
