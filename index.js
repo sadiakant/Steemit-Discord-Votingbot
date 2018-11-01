@@ -11,6 +11,7 @@ var helper = require("./helper.js")
 var config = {}
 var whitelist = []
 var times = {}
+var messagesToUser = {}
 
 api.start()
 
@@ -36,6 +37,7 @@ var whitelistOnlyMode = config["whitelistOnlyMode"]
 loadConfig()
 loadWhitelist()
 loadTimes()
+updateMessagesToUser()
 
 var client = new dsteem.Client('https://api.steemit.com')
 
@@ -53,6 +55,7 @@ bot.on('message', message => {
     loadConfig()
     loadWhitelist()
     loadTimes()
+    updateMessagesToUser()
 
     var botCommandId = -1
     try {
@@ -76,11 +79,13 @@ bot.on('message', message => {
         console.log(command)
 
         if (command == "help") {
-            message.channel.send("<@" + message.author.id + "> To get your post voted by @" + steemAccount + ", just type in `" + prefix + "upvote (postlink)`. The postlink can be from steemit, or busy, or any other site that follow the @author/permlink format. " + botCommandRoleName + " can use `" + prefix + "add (steem name)` to add people to the whitelist and `" + prefix + "remove (steem name)` to remove them from the whitelist. `" + prefix + "value {Vote Weight(Between 0.01 and 100)}` can be used to find the bot's value at a particular percent.")
+            var messageToSend = replaceVariabledInTextWithValue(messagesToUser.help, message.author.id)
+            message.channel.send(messageToSend)
         }
 
         if (command == "version" || command == "v") {
-            message.channel.send("<@" + message.author.id + "> The bot version that is being used is " + version + ".")
+            var messageToSend = replaceVariabledInTextWithValue(messagesToUser.version, message.author.id)
+            message.channel.send(messageToSend)
         }
 
         if (command == "upvote") {
@@ -120,8 +125,9 @@ bot.on('message', message => {
                             if (err == null) {
                                 var jsonMetadata = JSON.parse(result.json_metadata)
                                 var tagsOnPost = jsonMetadata.tags
-
+                                tagsOnPost.push(result.category)
                                 blacklistedTags = blacklistedTags.replace(/\s/g, '')
+                                blacklistedTags = blacklistedTags
                                 var blacklistedTagsArray = blacklistedTags.split(",")
                                 var containsMatchingBlacklistedTags = helper.shareAnElement(tagsOnPost, blacklistedTagsArray)
 
@@ -137,7 +143,8 @@ bot.on('message', message => {
                                 }
 
                                 if (containsMatchingBlacklistedTags) {
-                                    message.channel.send("<@" + message.author.id + "> Your post has a blacklisted tag. We won't vote for this post.")
+                                    var messageToSend = replaceVariabledInTextWithValue(messagesToUser.postContaintsBlacklistedTags, message.author.id)
+                                    message.channel.send(messageToSend)
                                     return
                                 }
 
@@ -338,13 +345,23 @@ function sendBlissFishBidWithApi(key, author, permlink) {
     })
 }
 
+function replaceVariabledInTextWithValue(text, tag){
+    var editedText = text
+    editedText = editedText.replace(/\{steemAccount\}/g, steemAccount)
+    editedText = editedText.replace(/\{prefix\}/g, prefix)
+    editedText = editedText.replace(/\{botCommandRoleName\}/g, botCommandRoleName)
+    editedText = editedText.replace(/\{userToTag\}/g, tag)
+    editedText = editedText.replace(/\{version\}/g, version)
+    return editedText
+}
+
 function loadConfig() {
     config = JSON.parse(fs.readFileSync("config.json"));
     token = config["discordToken"]
     prefix = config["prefix"]
     botCommandRoleName = config["botCommandRole"]
     version = config["version"]
-    steemAccount = config["accountName"]
+    steemAccount = config["steemAccount"]
     minTimeWhitelisted = config["minTimeWhitelisted"]
     maxTimeWhitelisted = config["maxTimeWhitelisted"]
     minTimeNotWhitelisted = config["minTimeNotWhitelisted"]
@@ -358,6 +375,11 @@ function loadConfig() {
     leaveComment = config["leaveComment"]
     blacklistedTags = config["blacklistedTags"]
     whitelistOnlyMode = config["whitelistOnlyMode"]
+    
+}
+
+function updateMessagesToUser() {
+    messagesToUser = JSON.parse(fs.readFileSync("messages.json"));
 }
 
 function writeConfig() {
@@ -375,6 +397,5 @@ function loadTimes() {
 function writeTimes() {
     fs.writeFile('times.json', JSON.stringify(times, null, 2), function(err) {})
 }
-
 
 bot.login(token);
