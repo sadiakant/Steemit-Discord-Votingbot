@@ -201,7 +201,7 @@ bot.on('message', message => {
         if (command == "value") {
             var weight = parseFloat(splitMessage[1])
             if (isNaN(weight) || weight > 100 || 0 > weight) {
-                message.channel.send("<@" + message.author.id + "> The proper waay to use this command is `" + prefix + "value {Vote Weight(Between 0.01 and 100)}`. Please try again.")
+                message.channel.send("<@" + message.author.id + "> The proper way to use this command is `" + prefix + "value {Vote Weight(Between 0.01 and 100)}`. Please try again.")
                 return
             }
             steem.api.getRewardFund('post', function(errFunds, responseFunds) {
